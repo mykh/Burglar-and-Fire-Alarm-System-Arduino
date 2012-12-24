@@ -1,4 +1,2 @@
-Burglar-and-Fire-Alarm-System---Arduino
+Arduino-based Burglar and Fire Alarm System
 =======================================
-
-Burglar and Fire Alarm System / Arduino
