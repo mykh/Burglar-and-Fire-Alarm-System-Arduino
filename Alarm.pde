@@ -952,7 +952,7 @@ void Alarm::process()
     if ((settings.alarmTamperMask & 1) && !btnTamper.isPressedExt())
     {
       #ifdef TEST
-      Serial.println('Tamper pin is disconnected');
+      Serial.println("Tamper pin is disconnected");
       #endif
       setState(asAlarm);
       #ifdef EVENTS_LOG_ENABLED
@@ -1033,7 +1033,7 @@ void Alarm::process_Armed()
   if ((settings.alarmFireMask & 1) && !btnFire.isPressedExt())
   {
     #ifdef TEST
-    Serial.println('Fire pin is disconnected');
+    Serial.println("Fire pin is disconnected");
     #endif
     setState(asBeforeAlarm);
     #ifdef EVENTS_LOG_ENABLED
@@ -1046,7 +1046,7 @@ void Alarm::process_Armed()
   if ((settings.alarmInMask & 1) && !btnInput.isPressedExt())
   {
     #ifdef TEST
-    Serial.println('Input pin is disconnected');
+    Serial.println("Input pin is disconnected");
     #endif
     setState(asBeforeAlarm);
     #ifdef EVENTS_LOG_ENABLED
