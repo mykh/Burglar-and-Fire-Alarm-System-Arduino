@@ -397,11 +397,11 @@ class MenuBase
 class MenuItemValue
 {
   public:
-    virtual void Load(void)
+    virtual void load(void)
     {
       keypad.clearBuffer();
     }
-    virtual bool Save(void)
+    virtual bool save(void)
     {
       return true;
     }
@@ -420,11 +420,11 @@ class MenuItemUIntValue: public MenuItemValue
       : value(_value)
     {
     }
-    virtual void Load(void)
+    virtual void load(void)
     {
       ltoa(*value, keypad.getBuffer(), 10);
     }
-    virtual bool Save(void)
+    virtual bool save(void)
     {
       *value = atol(keypad.getBuffer());
       saveSettings();
@@ -441,11 +441,11 @@ class MenuItemMaskValue: public MenuItemValue
       : value(_value)
     {
     }
-    virtual void Load(void)
+    virtual void load(void)
     {
       ltoa((*value & 1), keypad.getBuffer(), 10);
     }
-    virtual bool Save(void)
+    virtual bool save(void)
     {
       *value = (atol(keypad.getBuffer()) == 0) ? 0 : 1;
       saveSettings();
@@ -462,11 +462,11 @@ class MenuItemStrValue: public MenuItemValue
       : value(_value)
     {
     }
-    virtual void Load(void)
+    virtual void load(void)
     {
       keypad.setBuffer(value);
     }
-    virtual bool Save(void)
+    virtual bool save(void)
     {
       strcpy(value, keypad.getBuffer());
       saveSettings();
@@ -515,7 +515,7 @@ bool MenuItem::process()
       keypad.clearBuffer();
       return true;
     case KeypadExt::KeyEnter:
-      if (value->Save())
+      if (value->save())
       {
         setActive(false);
         keypad.clearBuffer();
@@ -538,7 +538,7 @@ void MenuItem::setActive(bool _active)
   MenuBase::setActive(_active);
   if(_active)
   {
-    value->Load();
+    value->load();
     lcd.cursor();
     print();
   }
@@ -549,7 +549,7 @@ void MenuItem::setActive(bool _active)
 char* MenuItem::getHint(void)
 {
   if (!isActive())
-    value->Load();
+    value->load();
   return keypad.getBuffer();
 }
 
