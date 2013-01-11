@@ -7,3 +7,10 @@ Video
 =====
 
 Quick video on youtube: http://youtu.be/SJTbPBYI8FU
+
+Used Libraries
+==============
+* Button
+* EEPROM
+* Keypad
+* ShiftRegLCD
