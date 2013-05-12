@@ -27,6 +27,11 @@
 //#define TEST
 //#define EVENTS_LOG_ENABLED
 //#define LANG_UKR
+//#define USE_ANALOG_FIRE_SENSOR // not tested, since I haven't an analog fire sensor. details: http://www.seeedstudio.com/wiki/Grove_-_Gas_Sensor%28MQ2%29
+
+#ifdef USE_ANALOG_FIRE_SENSOR
+const static float FireSensorThreshold = 0.5; // set value from 0 to 1.
+#endif
 
 #if defined(ARDUINO) && (ARDUINO < 19)
 // copied from WProgram.h
@@ -749,7 +754,9 @@ class Alarm
 
     ButtonExt btnInput;
     ButtonExt btnTamper;
+    #ifndef USE_ANALOG_FIRE_SENSOR
     ButtonExt btnFire;
+    #endif
 
     bool lcdCanPrint();
 
@@ -759,6 +766,7 @@ class Alarm
     void setBuzzer(bool on);
     void setLedMode(AlarmLedMode _ledMode);
     void setState(const AlarmState _newState);
+    bool isFireDetected();
 
     void process_BeforeArmed();
     void process_Armed();
@@ -793,7 +801,10 @@ class Alarm
 
 Alarm::Alarm(AlarmState _state, byte _pinOut, byte _pinIn, byte _pinTamper, byte _pinFire, byte _pinLed, byte _pinBuzzer)
   : currState(_state), pinOut(_pinOut), pinIn(_pinIn), pinTamper(_pinTamper), pinFire(pinFire), pinLed(_pinLed), pinBuzzer(_pinBuzzer),
-    btnInput(_pinIn, PULLUP), btnTamper(_pinTamper, PULLUP), btnFire(_pinFire, PULLUP)
+    btnInput(_pinIn, PULLUP), btnTamper(_pinTamper, PULLUP)
+    #ifndef USE_ANALOG_FIRE_SENSOR
+      , btnFire(_pinFire, PULLUP)
+    #endif
 {
   currStateStartTime = 0;
   lcdPrintLastTime = 0;
@@ -812,6 +823,10 @@ Alarm::Alarm(AlarmState _state, byte _pinOut, byte _pinIn, byte _pinTamper, byte
     pinMode(pinIn, INPUT);
   if (pinTamper != PIN_BAD)
     pinMode(pinTamper, INPUT);
+  #ifdef USE_ANALOG_FIRE_SENSOR
+  if (pinFire != PIN_BAD)
+    pinMode(pinFire, INPUT);
+  #endif
 }
 
 void Alarm::init()
@@ -872,6 +887,21 @@ bool Alarm::passwordPromt(bool _showInvalidPasswordMessage)
     lcd.setBacklightOn();
   }
   return (key == KeypadExt::KeyEnter);
+}
+
+bool Alarm::isFireDetected()
+{
+  #ifdef USE_ANALOG_FIRE_SENSOR
+  if (pinFire == PIN_BAD)
+    return false;
+  else
+  {
+    float value = (float)analogRead(pinFire) / 1024.0;
+    return (value > FireSensorThreshold);
+  }
+  #else
+  return !btnFire.isPressedExt();
+  #endif
 }
 
 void Alarm::setAlarm(bool on)
@@ -966,7 +996,7 @@ void Alarm::process()
   // correct start time
   if (currStateStartTime > now)
     currStateStartTime = 0;
-
+    
   if (currState != asAlarm)
   {
     if ((settings.alarmTamperMask & 1) && !btnTamper.isPressedExt())
@@ -1050,10 +1080,10 @@ void Alarm::process_Armed()
     lcd.print(lcdArmModeOnMsg);
   };
 
-  if ((settings.alarmFireMask & 1) && !btnFire.isPressedExt())
+  if ((settings.alarmFireMask & 1) && isFireDetected())
   {
     #ifdef TEST
-    Serial.println("Fire pin is disconnected");
+    Serial.println("Fire detected");
     #endif
     setState(asBeforeAlarm);
     #ifdef EVENTS_LOG_ENABLED
@@ -1171,7 +1201,7 @@ void Alarm::process_Disarmed()
       lcd.print(lcdMotionDetectedMsg);
       lcd.print(" ");
     }
-    if ((settings.alarmFireMask & 1) && !btnFire.isPressedExt())
+    if ((settings.alarmFireMask & 1) && isFireDetected())
       lcd.print(lcdFireDetectedMsg);
   }
 
@@ -1254,3 +1284,4 @@ void loop()
 {
   alarm.process();
 }
+
